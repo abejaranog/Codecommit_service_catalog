@@ -1,0 +1,89 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+  
+    "Description" : "AWS Service Catalog sample template",
+  
+    "Parameters" : {
+        "Team" : {
+            "Description" : "Team that owns the repository",
+            "Type" : "String",
+            "AllowedValues" : [ "team1", "team2", "team3"]
+        },
+        "Name" : {
+            "Description" : "Repository name",
+            "Type" : "String"
+        },
+        "Type" : {
+          "Description" : "Repository type",
+          "Type" : "String",
+          "AllowedValues" : ["base", "buildspec"]
+        }
+    },
+    "Resources" : {
+       "CodecommitRepo" : {
+        "Type" : "AWS::CodeCommit::Repository",
+        "Properties" : {
+            "RepositoryDescription" : "Created by Service Catalog",
+            "RepositoryName" : { "Ref" : "Name" },
+            "Tags" : [ {
+                        "Key" : "Owner",
+                        "Value" : { "Ref" : "Team" }
+                    } ],
+            "Code": {
+                "BranchName": "master",
+                "S3": {
+                  "Bucket": "sandbox-abg-cf-templates",
+                  "Key": { "Fn::Sub": [ "repositories/${Type}.zip", { "Type": {"Ref" : "Type" }} ]}
+              }
+            }
+          }
+       },
+       "CodecommitChange" : {
+        "Type" : "AWS::Events::Rule",
+        "Properties" : {
+            "Description" : "Created by Service Catalog",
+            "EventPattern" : {
+                "source": ["aws.codecommit"],
+                "detail-type": ["CodeCommit Repository State Change"],
+                "resources": [{ "Fn::GetAtt" : [ "CodecommitRepo", "Arn" ] }],
+                "detail": {
+                  "event": [ "referenceCreated", "referenceUpdated" ],
+                  "referenceType": [ "branch" ],
+                  "referenceName": [ "master" ]
+                }
+            },
+            "Name" : { "Ref" : "Name"}
+          }
+       },
+        "CodestarNotificationRule" : {
+        "Type" : "AWS::CodeStarNotifications::NotificationRule",
+        "Properties" : {
+            "DetailType" : "FULL",
+            "EventTypeIds" : [
+              "codecommit-repository-pull-request-created",
+              "codecommit-repository-pull-request-source-updated",
+              "codecommit-repository-pull-request-status-changed",
+              "codecommit-repository-pull-request-merged",
+              "codecommit-repository-comments-on-pull-requests"
+            ],
+            "Name" : { "Fn::Sub" : [ "${repo-name}-notification-rule", { "repo-name": { "Ref" : "CodecommitRepo" } } ] },
+            "Resource" : { "Fn::GetAtt" : [ "CodecommitRepo", "Arn" ] },
+            "Status" : "ENABLED",
+            "Targets" : [ "<your_target_arn>" ]
+          }
+        }
+    },
+    "Outputs" : {
+      "RepositoryARN" : {
+        "Description" : "Public DNS name of the new EC2 instance",
+        "Value" : { "Fn::GetAtt" : [ "CodecommitRepo", "Arn" ] }
+      },
+      "RepositoryName" : {
+        "Description" : "Public IP address of the new EC2 instance",
+        "Value" : { "Fn::GetAtt" : [ "CodecommitRepo", "Name" ] }
+      },
+      "CodecommitChangeArn" : {
+          "Value" : {"Fn::GetAtt" : ["CodecommitChange", "Arn"]}
+      }
+    }
+  }
