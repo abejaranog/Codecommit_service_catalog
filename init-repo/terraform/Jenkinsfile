@@ -1,0 +1,5 @@
+@Library("Pipelines") _
+
+terraform   terraformPlanParams: "--var-file=<tf-var-file-name>", 
+            doNotAssumeRole: true,
+            s3KeyBackend: "<s3-key-backend>"

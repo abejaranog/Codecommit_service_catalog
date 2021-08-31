@@ -7,7 +7,7 @@
         "Team" : {
             "Description" : "Team that owns the repository",
             "Type" : "String",
-            "AllowedValues" : [ "team1", "team2", "team3"]
+            "AllowedValues" : [ "drunken-clam", "wabipay", "devops", "wabi2c", "the-frying-dutchman", "taberna-de-moe", "shalom-grill-shawarma" ]
         },
         "Name" : {
             "Description" : "Repository name",
@@ -16,7 +16,7 @@
         "Type" : {
           "Description" : "Repository type",
           "Type" : "String",
-          "AllowedValues" : ["base", "buildspec"]
+          "AllowedValues" : ["base", "terraform"]
         }
     },
     "Resources" : {
@@ -53,23 +53,6 @@
                 }
             },
             "Name" : { "Ref" : "Name"}
-          }
-       },
-        "CodestarNotificationRule" : {
-        "Type" : "AWS::CodeStarNotifications::NotificationRule",
-        "Properties" : {
-            "DetailType" : "FULL",
-            "EventTypeIds" : [
-              "codecommit-repository-pull-request-created",
-              "codecommit-repository-pull-request-source-updated",
-              "codecommit-repository-pull-request-status-changed",
-              "codecommit-repository-pull-request-merged",
-              "codecommit-repository-comments-on-pull-requests"
-            ],
-            "Name" : { "Fn::Sub" : [ "${repo-name}-notification-rule", { "repo-name": { "Ref" : "CodecommitRepo" } } ] },
-            "Resource" : { "Fn::GetAtt" : [ "CodecommitRepo", "Arn" ] },
-            "Status" : "ENABLED",
-            "Targets" : [ "<your_target_arn>" ]
           }
         }
     },

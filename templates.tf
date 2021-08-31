@@ -4,8 +4,8 @@ data "archive_file" "base_repo" {
   output_path = "${local.zip_output_path}/base.zip"
 }
 
-data "archive_file" "buildspec_repo" {
+data "archive_file" "terraform_repo" {
   type        = "zip"
-  source_dir = "${path.module}/init-repo/buildspec"
-  output_path = "${local.zip_output_path}/buildspec.zip"
+  source_dir = "${path.module}/init-repo/terraform"
+  output_path = "${local.zip_output_path}/terraform.zip"
 }

@@ -1,5 +1,8 @@
 resource "aws_s3_bucket" "cf_templates" {
     bucket = "sandbox-abg-cf-templates"
+    versioning {
+      enabled = true
+    }
 }
 
 resource "aws_s3_bucket_object" "template" {
@@ -22,6 +25,11 @@ resource "aws_servicecatalog_portfolio" "portfolio" {
   provider_name = "DevOps"
 }
 
+resource "aws_servicecatalog_principal_portfolio_association" "example" {
+  portfolio_id  = aws_servicecatalog_portfolio.portfolio.id
+  principal_arn = "arn:aws:iam::${var.AWS_account}:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_AWSAdministratorAccess_c0e97dae3dbafb4f"
+}
+
 resource "aws_servicecatalog_product" "codecommit" {
   name  = "Codecommit Repository"
   owner = "DevOps"
@@ -29,11 +37,21 @@ resource "aws_servicecatalog_product" "codecommit" {
 
   provisioning_artifact_parameters {
     template_url = "https://s3.amazonaws.com/${aws_s3_bucket.cf_templates.id}/${aws_s3_bucket_object.template.id}"
-    name = "v0.3"
     type = "CLOUD_FORMATION_TEMPLATE"
-    description = "v0.3"
+    name = "v0"
   }
 }
 
+resource "aws_servicecatalog_provisioning_artifact" "provisioning_artifact_v05" {
+  name         = "v0.5"
+  product_id   = aws_servicecatalog_product.codecommit.id
+  type         = "CLOUD_FORMATION_TEMPLATE"
+  template_url = "https://s3.amazonaws.com/${aws_s3_bucket.cf_templates.id}/${aws_s3_bucket_object.template.id}"
+  ## BUG: Resource also needs to be renamed to update product
+}
 
+resource "aws_servicecatalog_product_portfolio_association" "association" {
+  portfolio_id = aws_servicecatalog_portfolio.portfolio.id
+  product_id   = aws_servicecatalog_product.codecommit.id
+}
 

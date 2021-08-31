@@ -19,9 +19,19 @@ generate "provider" {
   if_exists = "overwrite_terragrunt"
   contents = <<EOF
 provider "aws" {
-  region = "us-west-2"  
+  region = "us-west-2"
+
 }
 
 provider "archive" {}
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 3.56"
+    }
+  }
+}
 EOF
 }
